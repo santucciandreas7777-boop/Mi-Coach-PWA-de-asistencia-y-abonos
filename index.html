@@ -100,6 +100,13 @@
         <input type="hidden" id="f-id" />
         <label>Nombre<input type="text" id="f-nombre" required maxlength="60" /></label>
         <label>Contacto (whatsapp / teléfono)<input type="tel" id="f-contacto" /></label>
+        <label>Tipo de abono
+          <select id="f-abono">
+            <option value="16">16 clases por mes</option>
+            <option value="12">12 clases por mes</option>
+            <option value="8">8 clases por mes</option>
+          </select>
+        </label>
         <label>Monto de la cuota<input type="number" id="f-monto" min="0" step="100" required /></label>
         <label>Día de pago del mes<input type="number" id="f-dia" min="1" max="31" value="10" required /></label>
         <div class="form-actions">
