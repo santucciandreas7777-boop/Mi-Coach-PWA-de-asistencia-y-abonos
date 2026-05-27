@@ -110,6 +110,7 @@ body {
 .estado-chips {
   display: flex;
   gap: 6px;
+  flex-shrink: 0;
 }
 .chip {
   padding: 6px 10px;
@@ -126,6 +127,28 @@ body {
 .chip.on-presente { background: var(--success-soft); border-color: var(--success); color: var(--success); }
 .chip.on-ausente  { background: var(--danger-soft);  border-color: var(--danger);  color: var(--danger); }
 .chip.on-justif   { background: var(--warning-soft); border-color: var(--warning); color: var(--warning); }
+
+/* Resumen mensual por alumno (vista Asistencia) */
+.resumen-mes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.rm-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  white-space: nowrap;
+}
+.rm-tag.p    { background: var(--success-soft); color: var(--success); }
+.rm-tag.a    { background: var(--danger-soft);  color: var(--danger); }
+.rm-tag.j    { background: var(--warning-soft); color: var(--warning); }
+.rm-tag.rest { background: var(--primary-soft); color: var(--primary); }
+.rm-tag.over { background: var(--danger-soft);  color: var(--danger); }
 
 /* Abonos alerts */
 .alerta {
@@ -291,7 +314,8 @@ body {
   font-size: 13px;
   color: var(--muted);
 }
-.modal input {
+.modal input,
+.modal select {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 10px;
