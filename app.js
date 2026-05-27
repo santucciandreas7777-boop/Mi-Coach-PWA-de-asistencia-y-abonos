@@ -105,6 +105,27 @@ function switchView(view) {
 }
 
 // ---------- Asistencia ----------
+
+// Arma los "chips" de resumen del mes de un alumno:
+// abono total, presentes, ausentes, justificados y clases que le quedan.
+function resumenMesHTML(a, st) {
+  const tags = [
+    `<span class="rm-tag">${a.abono ? 'Abono ' + a.abono : 'Sin abono'}</span>`,
+    `<span class="rm-tag p">${st.presente} pres.</span>`,
+    `<span class="rm-tag a">${st.ausente} aus.</span>`
+  ];
+  if (st.justificado > 0) {
+    tags.push(`<span class="rm-tag j">${st.justificado} just.</span>`);
+  }
+  if (a.abono) {
+    const quedan = a.abono - st.presente;
+    tags.push(quedan >= 0
+      ? `<span class="rm-tag rest">quedan ${quedan}</span>`
+      : `<span class="rm-tag over">excedido ${-quedan}</span>`);
+  }
+  return `<div class="resumen-mes">${tags.join('')}</div>`;
+}
+
 async function renderAsistencia() {
   const fecha = $('#fecha-asistencia').value || todayISO();
   $('#fecha-asistencia').value = fecha;
@@ -121,15 +142,33 @@ async function renderAsistencia() {
   }
   $('#empty-asistencia').hidden = true;
 
+  // Resumen del mes (el mes de la fecha elegida): cuenta P / A / J de cada alumno.
+  const mes = fecha.slice(0, 7); // 'YYYY-MM' directo del string, sin Date, para no pelearse con la zona horaria
+  const [anio, nMes] = mes.split('-').map(Number);
+  const ultimoDia = lastDayOfMonth(anio, nMes);
+  const asistDelMes = await db.asistencias
+    .where('fecha')
+    .between(`${mes}-01`, `${mes}-${String(ultimoDia).padStart(2, '0')}`, true, true)
+    .toArray();
+
+  const statsPorAlumno = {};
+  for (const r of asistDelMes) {
+    const s = statsPorAlumno[r.alumno_id] ||
+      (statsPorAlumno[r.alumno_id] = { presente: 0, ausente: 0, justificado: 0 });
+    if (s[r.estado] !== undefined) s[r.estado]++;
+  }
+
   for (const a of alumnos) {
     const reg = await db.asistencias.where({ alumno_id: a.id, fecha }).first();
     const estado = reg ? reg.estado : null;
+    const st = statsPorAlumno[a.id] || { presente: 0, ausente: 0, justificado: 0 };
 
     const li = document.createElement('li');
     li.className = 'list-item';
     li.innerHTML = `
       <div>
         <div class="nombre">${escapeHtml(a.nombre)}</div>
+        ${resumenMesHTML(a, st)}
       </div>
       <div class="estado-chips" data-aid="${a.id}">
         <button class="chip ${estado==='presente'    ? 'on-presente' : ''}" data-estado="presente">P</button>
@@ -324,12 +363,13 @@ async function renderAlumnos() {
   $('#empty-alumnos').hidden = true;
 
   for (const a of alumnos) {
+    const abonoTxt = a.abono ? `Abono ${a.abono} clases · ` : '';
     const li = document.createElement('li');
     li.className = 'list-item';
     li.innerHTML = `
       <div>
         <div class="nombre">${escapeHtml(a.nombre)}${!a.activo ? ' <span style="color:var(--muted);font-weight:400">(baja)</span>' : ''}</div>
-        <div class="meta">${fmtMoney(a.monto_cuota)} · paga el ${a.dia_pago_mes} de cada mes</div>
+        <div class="meta">${abonoTxt}${fmtMoney(a.monto_cuota)} · paga el ${a.dia_pago_mes} de cada mes</div>
       </div>
       <button class="btn-ghost" style="padding:8px 12px" data-edit="${a.id}">Editar</button>`;
     ul.appendChild(li);
@@ -352,6 +392,7 @@ async function abrirModalAlumno(aid) {
     $('#modal-title').textContent = 'Editar alumno';
     $('#f-nombre').value   = a.nombre;
     $('#f-contacto').value = a.contacto || '';
+    $('#f-abono').value    = String(a.abono || 12);
     $('#f-monto').value    = a.monto_cuota;
     $('#f-dia').value      = a.dia_pago_mes;
     $('#eliminar-btn').hidden = false;
@@ -360,6 +401,7 @@ async function abrirModalAlumno(aid) {
     $('#modal-title').textContent = 'Nuevo alumno';
     $('#f-nombre').value = '';
     $('#f-contacto').value = '';
+    $('#f-abono').value = '12';
     $('#f-monto').value = '';
     $('#f-dia').value = '10';
     $('#eliminar-btn').hidden = true;
@@ -409,6 +451,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const data = {
       nombre:       $('#f-nombre').value.trim(),
       contacto:     $('#f-contacto').value.trim(),
+      abono:        parseInt($('#f-abono').value),
       monto_cuota:  parseFloat($('#f-monto').value),
       dia_pago_mes: parseInt($('#f-dia').value),
     };
