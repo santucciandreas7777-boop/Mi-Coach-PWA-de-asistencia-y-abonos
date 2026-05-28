@@ -15,6 +15,7 @@
 </head>
 <body>
   <header class="topbar">
+    <button id="back-btn" class="btn-back" aria-label="Volver" hidden>‹</button>
     <h1 id="view-title">Asistencia</h1>
     <button id="add-btn" class="btn-icon" aria-label="Agregar" hidden>+</button>
   </header>
@@ -41,7 +42,7 @@
       <p id="empty-abonos" class="empty" hidden>Sin pagos pendientes 🎉</p>
     </section>
 
-    <!-- DASHBOARD -->
+    <!-- DASHBOARD / RESUMEN -->
     <section id="view-dashboard" class="view">
       <div class="cards-row">
         <div class="metric-card">
@@ -59,17 +60,33 @@
         <span class="trend-label">vs. hace 3 meses</span>
         <span class="trend-value" id="trend-value">—</span>
       </div>
-      <h2 class="section-title">Resumen del mes</h2>
-      <div class="summary" id="summary"></div>
+
+      <!-- Total acumulado: SOLO alumnos activos -->
+      <div class="total-card">
+        <div>
+          <div class="total-label">Monto acumulado total</div>
+          <div class="total-nota" id="total-nota">Solo alumnos activos</div>
+        </div>
+        <div class="total-value" id="total-acumulado">—</div>
+      </div>
+
+      <h2 class="section-title">Detalle por alumno</h2>
+      <div id="tabla-resumen-wrap"></div>
     </section>
 
     <!-- ALUMNOS -->
     <section id="view-alumnos" class="view">
+      <div id="buscador-wrap" class="buscador-wrap" hidden>
+        <input type="search" id="buscador" placeholder="Buscar alumno…" autocomplete="off" />
+      </div>
       <ul id="lista-alumnos" class="list"></ul>
       <p id="empty-alumnos" class="empty" hidden>
         Tocá <b>+</b> arriba a la derecha para agregar el primer alumno.
       </p>
     </section>
+
+    <!-- PERFIL (se llena por JS) -->
+    <section id="view-perfil" class="view"></section>
   </main>
 
   <nav class="tabbar">
@@ -100,20 +117,13 @@
         <input type="hidden" id="f-id" />
         <label>Nombre<input type="text" id="f-nombre" required maxlength="60" /></label>
         <label>Contacto (whatsapp / teléfono)<input type="tel" id="f-contacto" /></label>
-        <label>Tipo de abono
-          <select id="f-abono">
-            <option value="16">16 clases por mes</option>
-            <option value="12">12 clases por mes</option>
-            <option value="8">8 clases por mes</option>
-          </select>
-        </label>
+        <label>Clases contratadas por período<input type="number" id="f-abono" min="1" max="60" step="1" value="12" required /></label>
         <label>Monto de la cuota<input type="number" id="f-monto" min="0" step="100" required /></label>
         <label>Día de pago del mes<input type="number" id="f-dia" min="1" max="31" value="10" required /></label>
         <div class="form-actions">
           <button type="button" id="cancelar-btn" class="btn-ghost">Cancelar</button>
           <button type="submit" class="btn-primary">Guardar</button>
         </div>
-        <button type="button" id="eliminar-btn" class="btn-danger" hidden>Dar de baja</button>
       </form>
     </div>
   </div>
