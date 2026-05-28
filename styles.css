@@ -347,3 +347,196 @@ body {
   animation: fadeIn 0.2s ease;
 }
 @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* ============================================================
+   AGREGADOS — módulo Alumnos / Perfil / Resumen
+   ============================================================ */
+
+.grow { min-width: 0; }
+.list-item.tappable { cursor: pointer; }
+.list-item.tappable:active { background: var(--primary-soft); }
+.chevron { color: var(--muted); font-size: 22px; flex-shrink: 0; padding-left: 8px; }
+
+/* Botón volver en la topbar */
+.btn-back {
+  width: 40px; height: 40px;
+  border: none; background: transparent;
+  color: var(--primary);
+  font-size: 30px; line-height: 1;
+  cursor: pointer; padding: 0;
+  margin-right: 4px;
+}
+.btn-back:active { transform: scale(0.92); }
+
+/* Badge de baja */
+.badge-baja {
+  font-size: 11px; font-weight: 600;
+  padding: 1px 7px; border-radius: 999px;
+  background: var(--danger-soft); color: var(--danger);
+  margin-left: 6px; vertical-align: middle;
+}
+
+/* Semáforo unificado (verde / rojo / sin abono) */
+.sem {
+  display: inline-block;
+  font-size: 12px; font-weight: 600;
+  padding: 2px 9px; border-radius: 999px;
+  white-space: nowrap;
+}
+.sem-verde  { background: var(--success-soft); color: var(--success); }
+.sem-rojo   { background: var(--danger-soft);  color: var(--danger); }
+.sem-neutro { background: var(--primary-soft); color: var(--muted); }
+
+/* Buscador */
+.buscador-wrap { margin-bottom: 12px; }
+#buscador {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 15px; color: var(--text);
+  font-family: inherit;
+}
+#buscador:focus { outline: none; border-color: var(--primary); }
+
+/* ---- Resumen: tarjeta de total ---- */
+.total-card {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--primary); color: #fff;
+  border-radius: var(--radius);
+  padding: 16px 18px; margin-bottom: 12px;
+}
+.total-label { font-size: 13px; opacity: 0.9; }
+.total-nota  { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+.total-value { font-size: 26px; font-weight: 700; }
+
+/* ---- Resumen: tabla ---- */
+.tabla-resumen {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.tabla-resumen th {
+  text-align: left;
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+  color: var(--muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.tabla-resumen td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px; vertical-align: middle;
+}
+.tabla-resumen tr:last-child td { border-bottom: none; }
+.tabla-resumen tbody tr { cursor: pointer; }
+.tabla-resumen tbody tr:active { background: var(--primary-soft); }
+.td-nombre { font-weight: 500; }
+.td-sem { text-align: right; }
+
+.pill-pago {
+  display: inline-block;
+  font-size: 12px; font-weight: 600;
+  padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+}
+.pill-pago.ok   { background: var(--success-soft); color: var(--success); }
+.pill-pago.no   { background: var(--danger-soft);  color: var(--danger); }
+.pill-pago.pend { background: var(--warning-soft); color: var(--warning); }
+
+/* ============================================================
+   PERFIL DEL ALUMNO
+   ============================================================ */
+.perfil-head {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px; margin-bottom: 12px;
+}
+.perfil-head.inactivo { opacity: 0.75; }
+.perfil-nombre { font-size: 20px; font-weight: 700; }
+.perfil-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+.perfil-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 12px;
+}
+.pc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.pc-num { font-size: 24px; font-weight: 700; line-height: 1; }
+.pc-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; }
+.pc-verde .pc-num { color: var(--success); }
+.pc-rojo  .pc-num { color: var(--danger); }
+.pc-verde { background: var(--success-soft); border-color: var(--success); }
+.pc-rojo  { background: var(--danger-soft);  border-color: var(--danger); }
+
+.ciclo-banner {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 16px;
+}
+.ciclo-fechas { font-size: 13px; color: var(--muted); }
+
+/* Calendario */
+.cal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.cal-title { font-size: 16px; font-weight: 600; }
+.cal-nav {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--primary); font-size: 22px; line-height: 1; cursor: pointer;
+}
+.cal-nav:active { transform: scale(0.92); }
+
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.cal-dow {
+  text-align: center; font-size: 11px; font-weight: 600;
+  color: var(--muted); padding-bottom: 4px;
+}
+.cal-cell { aspect-ratio: 1 / 1; }
+.cal-cell.empty { background: transparent; }
+.cal-cell.day {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px; font-weight: 500;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.cal-cell.day:active { transform: scale(0.94); }
+.cal-cell.day.en-ciclo { background: var(--primary-soft); border-color: var(--primary-soft); }
+.cal-cell.day.hoy { box-shadow: inset 0 0 0 2px var(--primary); }
+
+/* Estados de asistencia en el calendario */
+.cal-cell.day.est-presente {
+  background: var(--success); border-color: var(--success); color: #fff; font-weight: 700;
+}
+.cal-cell.day.est-ausente {
+  background: var(--danger-soft); border-color: var(--danger); color: var(--danger);
+}
+.cal-cell.day.est-justificado {
+  background: var(--warning-soft); border-color: var(--warning); color: var(--warning);
+}
+
+.cal-hint { font-size: 12px; color: var(--muted); margin: 10px 2px 18px; line-height: 1.5; }
+
+.perfil-acciones { display: flex; gap: 8px; }
+.perfil-acciones .btn-ghost { flex: 1; }
