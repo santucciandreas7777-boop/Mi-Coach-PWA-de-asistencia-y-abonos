@@ -81,6 +81,56 @@ const toast = (msg) => {
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 // ============================================================================
+//  WHATSAPP  (recordatorios de cobro)
+// ============================================================================
+
+// Normaliza un teléfono argentino al formato de wa.me: 549 + área + abonado.
+// Tolera los formatos típicos: 0351 15-..., +54 9 351..., 351 123 4567, etc.
+function normalizarTelAR(raw) {
+  if (!raw) return null;
+  const tienePlus = String(raw).trim().startsWith('+');
+  let d = String(raw).replace(/\D/g, ''); // solo dígitos
+  if (!d) return null;
+
+  if (tienePlus && d.startsWith('54')) d = d.slice(2);
+  else if (d.startsWith('54') && d.length >= 12) d = d.slice(2);
+  else if (d.startsWith('0')) d = d.slice(1);     // prefijo nacional de larga distancia
+
+  if (d.startsWith('9')) d = d.slice(1);          // el 9 de celular se re-agrega al final
+
+  // Saca el viejo "15" de celular cuando el número nacional viene con 12 dígitos.
+  if (d.length === 12) {
+    for (const pos of [2, 3, 4]) {                // código de área de 2, 3 o 4 dígitos
+      if (d.slice(pos, pos + 2) === '15') { d = d.slice(0, pos) + d.slice(pos + 2); break; }
+    }
+  }
+  return '549' + d;
+}
+
+// Mensaje pre-armado según el estado del pago (vencido vs. por vencer).
+function mensajeRecordatorio(a, p) {
+  const monto = fmtMoney(p.monto);
+  const fecha = fmtFechaCorta(p.vencimiento);
+  if (p.estado === 'vencido')
+    return `Hola ${a.nombre}! 👋 Te recuerdo que la cuota de ${monto} venció el ${fecha}. ¿Cuándo te queda cómodo pasarla? ¡Gracias! 🙌`;
+  return `Hola ${a.nombre}! 👋 Te recuerdo que la cuota de ${monto} vence el ${fecha}. ¡Gracias! 🙌`;
+}
+
+// Abre WhatsApp con el mensaje listo. Si no hay número guardado, copia el texto
+// y abre WhatsApp para que el coach elija el contacto a mano.
+function abrirWhatsApp(telRaw, msg) {
+  const tel = normalizarTelAR(telRaw);
+  const url = tel
+    ? `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  if (!tel) {
+    if (navigator.clipboard) navigator.clipboard.writeText(msg).catch(() => {});
+    toast('Sin número guardado: copié el mensaje');
+  }
+  window.open(url, '_blank');
+}
+
+// ============================================================================
 //  CICLO DE ABONO  (corazón del sistema de clases)
 // ============================================================================
 
@@ -314,15 +364,26 @@ async function renderAbonos() {
         <div class="meta">${fmtMoney(p.monto)} · ${metaText}</div>
       </div>
       <div class="pago-actions">
-        <button class="btn-mini" data-pid="${p.id}">Cobrar</button>
+        <button class="btn-wa"   data-action="recordar" data-pid="${p.id}">Recordar</button>
+        <button class="btn-mini" data-action="cobrar"   data-pid="${p.id}">Cobrar</button>
       </div>`;
     ul.appendChild(li);
   }
 
   ul.onclick = async (e) => {
-    const btn = e.target.closest('[data-pid]');
+    const btn = e.target.closest('[data-action]');
     if (!btn) return;
-    await db.pagos.update(parseInt(btn.dataset.pid), { estado: 'pagado', fecha_pago: todayISO() });
+    const pid = parseInt(btn.dataset.pid);
+    const p = await db.pagos.get(pid);
+    if (!p) return;
+
+    if (btn.dataset.action === 'recordar') {
+      const a = await db.alumnos.get(p.alumno_id);
+      if (a) abrirWhatsApp(a.contacto, mensajeRecordatorio(a, p));
+      return;
+    }
+    // cobrar
+    await db.pagos.update(pid, { estado: 'pagado', fecha_pago: todayISO() });
     toast('Pago registrado');
     renderAbonos();
   };
@@ -521,7 +582,10 @@ async function renderPerfil(aid) {
         ${escapeHtml(a.nombre)}
         ${a.activo ? '' : '<span class="badge-baja">baja</span>'}
       </div>
-      <div class="perfil-sub">${escapeHtml(a.contacto || 'Sin contacto')}</div>
+      <div class="perfil-sub">
+        ${escapeHtml(a.contacto || 'Sin contacto')}
+        ${a.contacto ? '<button class="btn-wa-mini" id="p-wa">WhatsApp</button>' : ''}
+      </div>
     </div>
 
     <div class="perfil-cards">
@@ -558,6 +622,8 @@ async function renderPerfil(aid) {
   $('#cal-next').onclick = () => { calCursor.m1++; if (calCursor.m1 > 12){calCursor.m1=1;calCursor.y++;} renderPerfil(aid); };
 
   $('#p-editar').onclick   = () => abrirModalAlumno(aid);
+  const waBtn = $('#p-wa');
+  if (waBtn) waBtn.onclick = () => abrirWhatsApp(a.contacto, `Hola ${a.nombre}! 👋 `);
   $('#p-baja').onclick     = async () => {
     await db.alumnos.update(aid, { activo: a.activo ? 0 : 1 });
     toast(a.activo ? 'Alumno dado de baja' : 'Alumno reactivado');
