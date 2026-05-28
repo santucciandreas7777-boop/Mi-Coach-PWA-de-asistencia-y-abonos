@@ -1,6 +1,6 @@
 // Service Worker — Mi Coach
 // Estrategia: network-first para los archivos de la app, cache-first para assets fijos.
-const CACHE = 'mi-coach-v2';
+const CACHE = 'mi-coach-v3';
 const SHELL = [
   './',
   './index.html',
