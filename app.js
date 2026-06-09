@@ -32,6 +32,10 @@ db.version(1).stores({
 const $  = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 
+// Enganche de eventos a prueba de nodos faltantes: si el elemento no existe,
+// NO rompe el resto del arranque (evita que un solo nodo ausente "ladrillee" la app).
+const on = (sel, evt, fn) => { const el = $(sel); if (el) el.addEventListener(evt, fn); };
+
 const todayISO = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -327,9 +331,9 @@ async function renderAsistencia() {
   const activos = (await db.alumnos.where('activo').equals(1).toArray())
     .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-  // Buscador visible solo si hay alumnos (cambio 2).
+  // Buscador siempre visible (predecible aunque no haya alumnos aún).
   const wrap = $('#buscador-asistencia-wrap');
-  if (wrap) wrap.hidden = activos.length === 0;
+  if (wrap) wrap.hidden = false;
 
   const q = normaliza(filtroAsistencia);
   const alumnos = activos.filter(a => coincideBusqueda(a, q));
@@ -435,9 +439,9 @@ async function renderAbonos() {
   if (porVencer > 0)
     alertas.innerHTML += `<div class="alerta warn">⏰ ${porVencer} vence${porVencer>1?'n':''} en los próximos 5 días</div>`;
 
-  // Buscador (cambio 2): visible solo si hay pendientes.
+  // Buscador siempre visible.
   const wrap = $('#buscador-abonos-wrap');
-  if (wrap) wrap.hidden = todosPagos.length === 0;
+  if (wrap) wrap.hidden = false;
 
   const q = normaliza(filtroAbonos);
   const pagos = todosPagos.filter(p => {
@@ -625,7 +629,7 @@ async function renderAlumnos() {
   const ul = $('#lista-alumnos');
   ul.innerHTML = '';
 
-  if (todos.length === 0) { $('#empty-alumnos').hidden = false; $('#buscador-wrap').hidden = true; return; }
+  if (todos.length === 0) { $('#empty-alumnos').hidden = false; $('#buscador-wrap').hidden = false; return; }
   $('#empty-alumnos').hidden = true;
   $('#buscador-wrap').hidden = false;
 
@@ -870,26 +874,30 @@ async function chequearAvisosAlAbrir() {
 //  INIT
 // ============================================================================
 document.addEventListener('DOMContentLoaded', async () => {
+  if (window.__miCoachInit) return;   // evita doble inicialización (doble carga / HMR)
+  window.__miCoachInit = true;
+
   $$('.tab').forEach(t => t.addEventListener('click', () => switchView(t.dataset.view)));
-  $('#back-btn').addEventListener('click', () => switchView('alumnos'));
+  on('#back-btn', 'click', () => switchView('alumnos'));
 
   // Asistencia
-  $('#fecha-asistencia').value = todayISO();
-  $('#fecha-asistencia').addEventListener('change', renderAsistencia);
-  $('#hoy-btn').addEventListener('click', () => { $('#fecha-asistencia').value = todayISO(); renderAsistencia(); });
+  const fechaInput = $('#fecha-asistencia');
+  if (fechaInput) fechaInput.value = todayISO();
+  on('#fecha-asistencia', 'change', renderAsistencia);
+  on('#hoy-btn', 'click', () => { if (fechaInput) fechaInput.value = todayISO(); renderAsistencia(); });
 
   // Buscadores en tiempo real (cambio 2)
-  $('#buscador-asistencia').addEventListener('input', (e) => { filtroAsistencia = e.target.value; renderAsistencia(); });
-  $('#buscador-abonos').addEventListener('input', (e) => { filtroAbonos = e.target.value; renderAbonos(); });
-  $('#buscador').addEventListener('input', (e) => { filtroAlumnos = e.target.value; renderAlumnos(); });
+  on('#buscador-asistencia', 'input', (e) => { filtroAsistencia = e.target.value; renderAsistencia(); });
+  on('#buscador-abonos', 'input', (e) => { filtroAbonos = e.target.value; renderAbonos(); });
+  on('#buscador', 'input', (e) => { filtroAlumnos = e.target.value; renderAlumnos(); });
 
   // Modal
-  $('#add-btn').addEventListener('click', () => abrirModalAlumno(null));
-  $('#cancelar-btn').addEventListener('click', cerrarModal);
-  document.querySelector('.modal-backdrop').addEventListener('click', cerrarModal);
+  on('#add-btn', 'click', () => abrirModalAlumno(null));
+  on('#cancelar-btn', 'click', cerrarModal);
+  on('.modal-backdrop', 'click', cerrarModal);
 
   // Form alumno
-  $('#form-alumno').addEventListener('submit', async (e) => {
+  on('#form-alumno', 'submit', async (e) => {
     e.preventDefault();
     const id = $('#f-id').value;
     const data = {
